@@ -1,0 +1,41 @@
+version: '3.4'
+
+networks:
+  sdportal-network:
+    driver: bridge
+
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=iradb
+    volumes:
+      - ./volumes/data/db:/var/lib/postgresql/data
+    ports:
+       - 5432:5432
+    networks:
+      - sdportal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  blazorapp:
+    image: ${DOCKER_REGISTRY-}blazorapp
+    build:
+      context: .
+      dockerfile: BlazorApp/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=http://+:5000
+      - DATABASE_CONNECTION_STRING=Host=db;Port=5432;Database=iradb;User Id=postgres;Password=postgres;
+    ports:
+       - 5000:5000
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - sdportal-network

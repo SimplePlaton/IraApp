@@ -1,0 +1,83 @@
+﻿@page "/"
+@using BlazorApp.Data;
+@using BlazorApp.Services;
+@using Blazorise;
+@inherits OwningComponentBase<TitanicService>
+<PageTitle>Пассажиры Титаника</PageTitle>
+
+<h2>Пассажиры Титаника</h2>
+
+<div class="form-group">
+    <input class="form-control" type="text" @bind="searchValue" @bind:after="Search" placeholder="Поиск..." />
+</div>
+@if (titanicTable == null)
+{
+    <p><em>Загрузка...</em></p>
+}
+else
+{
+    <Table Hoverable>
+    <TableHeader>
+        <TableRow>
+            <TableHeaderCell hidden>Id</TableHeaderCell>
+            <TableHeaderCell>Имя</TableHeaderCell>
+            <TableHeaderCell>Пол</TableHeaderCell>
+            <TableHeaderCell>Возраст</TableHeaderCell>
+            <TableHeaderCell>Номер билета</TableHeaderCell>
+            <TableHeaderCell>Комната</TableHeaderCell>
+            <TableHeaderCell>Класс</TableHeaderCell>
+            <TableHeaderCell style="text-align: center;vertical-align: middle">Выжил</TableHeaderCell>
+            <TableHeaderCell> </TableHeaderCell>
+        </TableRow>
+    </TableHeader>
+    <TableBody>
+        @foreach (var pas in titanicTable)
+            {
+                <TableRow>
+                    <TableRowCell hidden> @pas.Id </TableRowCell>
+                    <TableRowCell>@pas.Name</TableRowCell>
+                    <TableRowCell>@pas.Sex</TableRowCell>
+                    <TableRowCell>@pas.Age</TableRowCell>
+                    <TableRowCell>@pas.Ticket</TableRowCell>
+                    <TableRowCell>@pas.Cabin</TableRowCell>
+                    <TableRowCell>@pas.Pclass</TableRowCell>
+                    <TableRowCell style="text-align: center;vertical-align: middle">
+                        <input type="checkbox" checked="@pas.Survived" disabled />
+                    </TableRowCell>
+                    <TableRowCell>
+                        <a href="javascript:void(0)"  title="Изменить" style="text-decoration: none">
+                            <Icon Name="@("fa-edit")" />
+                        </a>
+                        <a href="javascript:void(0)" @onclick="@(() => Delete(pas))" title="Удалить" style="text-decoration: none">
+                            <Icon Name="@("fa-trash")" />
+                        </a>
+                    </TableRowCell>
+                </TableRow>
+            }
+        </TableBody>
+    </Table>
+
+}
+
+
+
+@code {
+    public System.Collections.Generic.IList<TitanicClass> titanicTable;
+    string searchValue = "";
+    
+    protected override void OnInitialized()
+    {
+        titanicTable = Service.GetTitanic(searchValue);
+        base.OnInitialized();
+    }
+    void Search()
+    {
+        titanicTable = Service.GetTitanic(searchValue);
+    }
+    void Delete(TitanicClass pas)
+    {
+        Service.Delete(pas);
+        titanicTable = Service.GetTitanic(searchValue);
+    }
+}
+
